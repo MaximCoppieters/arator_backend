@@ -21,19 +21,17 @@ export class ProductController {
    * POST /api/product
    */
   post = async (req: Request, res: Response) => {
-    console.log(req.user);
+    const product = new ProductModel({
+      name: req.body.name,
+      description: req.body.description,
+      amount: req.body.amount,
+      imageUrl: req.body.imageUrl,
+      priceInEuro: req.body.priceInEuro,
+      type: req.body.type,
+      weightUnit: req.body.weightUnit,
+      seller: req.user,
+    });
     try {
-      const sellerId = req.body.seller._id;
-      const product = new ProductModel({
-        name: req.body.name,
-        description: req.body.description,
-        amount: req.body.amount,
-        imageUrl: req.body.imageUrl,
-        priceInEuro: req.body.priceInEuro,
-        type: req.body.type,
-        weightUnit: req.body.weightUnit,
-        seller: await UserModel.findById(sellerId),
-      });
       const { _id } = await product.save();
       return res.status(201).json({ id: _id });
     } catch (err) {

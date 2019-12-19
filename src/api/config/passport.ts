@@ -2,6 +2,7 @@ import passport from "passport";
 import passportLocal from "passport-local";
 import passportFacebook from "passport-facebook";
 import _ from "lodash";
+import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 
 // import { User, UserType } from '../models/User';
 import { UserModel, User } from "../../data/models/User";
@@ -21,6 +22,26 @@ passport.deserializeUser((id, done) => {
   });
 });
 
+const opts = {
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: process.env.JWT_SECRET,
+};
+
+passport.use(
+  new JwtStrategy(opts, function(jwt_payload, done) {
+    UserModel.findOne({ id: jwt_payload.sub }, function(err, user) {
+      if (err) {
+        return done(err, false);
+      }
+      if (user) {
+        return done(undefined, user);
+      } else {
+        return done(undefined, false);
+        // or you could create a new account
+      }
+    });
+  })
+);
 /**
  * Sign in using Email and Password.
  */

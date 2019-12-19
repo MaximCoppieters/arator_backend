@@ -89,7 +89,11 @@ export default class ProjectRouter {
   setupProductController() {
     this._expressRouter
       .get("/product", this._productController.getAll)
-      .post("/product", this._productController.post);
+      .post(
+        "/product",
+        passport.authenticate("jwt", { session: false }),
+        this._productController.post
+      );
   }
 
   get expressRouter() {
