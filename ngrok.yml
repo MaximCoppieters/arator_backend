@@ -1,0 +1,5 @@
+tunnels:
+    arator:
+        proto: http
+        addr: 4000
+        hostname: test1234.eu.ngrok.io

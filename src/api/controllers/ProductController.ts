@@ -1,38 +1,43 @@
 import { Request, Response } from "express";
 import { Service } from "typedi";
-import { ProductRepository } from "../../data/repository/ProductRepository";
-import { Product } from "../../data/models/Product";
+import { UserModel } from "../../data/models/User";
+import { ProductModel } from "../../data/models/Product";
 
 @Service()
 export class ProductController {
-  private productRepository: ProductRepository;
-
-  constructor(productRepository: ProductRepository) {
-    this.productRepository = productRepository;
-  }
-
   /**
    * GET /api/product
    */
   getAll = async (req: Request, res: Response) => {
-    const products = await this.productRepository.findAll();
-    res.json(products);
+    const products = await ProductModel.find().select({
+      "seller.password": 0,
+      "seller.email": 0,
+    });
+
+    res.send(products);
   };
 
   /**
    * POST /api/product
    */
   post = async (req: Request, res: Response) => {
-    const product: Product = {
-      amount: 1,
-      description: "Lorem ipsum",
-      imageUrl: "http://ab8ec492.ngrok.io/apples.jpg",
-      name: "Apple",
-      priceInEuro: 1.8,
-      type: "Jonagold",
-      weightUnit: "KILOGRAM",
-    };
-    await this.productRepository.save(product);
-    return res.send(200);
+    console.log(req.user);
+    try {
+      const sellerId = req.body.seller._id;
+      const product = new ProductModel({
+        name: req.body.name,
+        description: req.body.description,
+        amount: req.body.amount,
+        imageUrl: req.body.imageUrl,
+        priceInEuro: req.body.priceInEuro,
+        type: req.body.type,
+        weightUnit: req.body.weightUnit,
+        seller: await UserModel.findById(sellerId),
+      });
+      const { _id } = await product.save();
+      return res.status(201).json({ id: _id });
+    } catch (err) {
+      return res.status(400).json({ message: err.message });
+    }
   };
 }

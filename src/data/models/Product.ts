@@ -1,25 +1,24 @@
-import { Schema } from "mongoose";
 import * as mongoose from "mongoose";
-export interface Product {
+import { Typegoose, prop, instanceMethod } from "typegoose";
+import { User } from "./User";
+
+export class Product extends Typegoose {
+  @prop({ required: true })
   name: string;
+  @prop({ required: true })
   imageUrl: string;
+  @prop()
   description: string;
+  @prop({ required: true })
   priceInEuro: number;
+  @prop({ required: true })
   amount: number;
+  @prop({ required: true })
   weightUnit: string;
+  @prop()
   type: string;
+  @prop({ required: true })
+  seller: User;
 }
 
-export const productSchema = {
-  name: String,
-  imageUrl: String,
-  description: String,
-  priceInEuros: Number,
-  amount: Number,
-  weightUnit: String,
-  type: String,
-  contactInfo: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
-  },
-};
+export const ProductModel = new Product().getModelForClass(Product);

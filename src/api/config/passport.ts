@@ -4,8 +4,9 @@ import passportFacebook from "passport-facebook";
 import _ from "lodash";
 
 // import { User, UserType } from '../models/User';
-import { User } from "../../data/models/User";
+import { UserModel, User } from "../../data/models/User";
 import { Request, Response, NextFunction } from "express";
+import bcrypt from "bcrypt-nodejs";
 
 const LocalStrategy = passportLocal.Strategy;
 const FacebookStrategy = passportFacebook.Strategy;
@@ -15,7 +16,7 @@ passport.serializeUser<any, any>((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-  User.findById(id, (err, user) => {
+  UserModel.findById(id, (err, user) => {
     done(err, user);
   });
 });
@@ -25,27 +26,47 @@ passport.deserializeUser((id, done) => {
  */
 passport.use(
   new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
-    User.findOne({ email: email.toLowerCase() }, (err, user: any) => {
+    UserModel.findOne({ email: email.toLowerCase() }, (err, user: User) => {
       if (err) {
         return done(err);
       }
       if (!user) {
-        return done(undefined, false, { message: `Email ${email} not found.` });
-      }
-      user.comparePassword(password, (err: Error, isMatch: boolean) => {
-        if (err) {
-          return done(err);
-        }
-        if (isMatch) {
-          return done(undefined, user);
-        }
         return done(undefined, false, {
-          message: "Invalid email or password.",
+          message: `Email ${email} not found.`,
         });
-      });
+      }
+      comparePassword(
+        user.password,
+        password,
+        (err: Error, isMatch: boolean) => {
+          if (err) {
+            return done(err);
+          }
+          if (isMatch) {
+            return done(undefined, user);
+          }
+          return done(undefined, false, {
+            message: "Invalid email or password.",
+          });
+        }
+      );
     });
   })
 );
+
+function comparePassword(
+  actualPassword: string,
+  candidatePassword: string,
+  cb: Function
+) {
+  bcrypt.compare(
+    candidatePassword,
+    actualPassword,
+    (err: any, isMatch: boolean) => {
+      cb(err, isMatch);
+    }
+  );
+}
 
 /**
  * OAuth Strategy Overview
@@ -76,7 +97,7 @@ passport.use(
     },
     (req: any, accessToken, refreshToken, profile, done) => {
       if (req.user) {
-        User.findOne({ facebook: profile.id }, (err, existingUser) => {
+        UserModel.findOne({ facebook: profile.id }, (err, existingUser) => {
           if (err) {
             return done(err);
           }
@@ -87,7 +108,7 @@ passport.use(
             });
             done(err);
           } else {
-            User.findById(req.user.id, (err, user: any) => {
+            UserModel.findById(req.user.id, (err, user: any) => {
               if (err) {
                 return done(err);
               }
@@ -101,21 +122,23 @@ passport.use(
                 user.profile.picture ||
                 `https://graph.facebook.com/${profile.id}/picture?type=large`;
               user.save((err: Error) => {
-                req.flash("info", { msg: "Facebook account has been linked." });
+                req.flash("info", {
+                  msg: "Facebook account has been linked.",
+                });
                 done(err, user);
               });
             });
           }
         });
       } else {
-        User.findOne({ facebook: profile.id }, (err, existingUser) => {
+        UserModel.findOne({ facebook: profile.id }, (err, existingUser) => {
           if (err) {
             return done(err);
           }
           if (existingUser) {
             return done(undefined, existingUser);
           }
-          User.findOne(
+          UserModel.findOne(
             { email: profile._json.email },
             (err, existingEmailUser) => {
               if (err) {
@@ -128,7 +151,7 @@ passport.use(
                 });
                 done(err);
               } else {
-                const user: any = new User();
+                const user: any = new UserModel();
                 user.email = profile._json.email;
                 user.facebook = profile.id;
                 user.tokens.push({ kind: "facebook", accessToken });

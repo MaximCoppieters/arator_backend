@@ -55,6 +55,7 @@ export default class ProjectRouter {
         passportConfig.isAuthenticated,
         this._userController.postDeleteAccount
       )
+      .get("/users", this._userController.getAll)
       .get(
         "/account/unlink/:provider",
         passportConfig.isAuthenticated,
