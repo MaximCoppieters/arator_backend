@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt-nodejs";
 import mongoose from "mongoose";
 import { prop, Typegoose, ModelType, InstanceType, pre } from "typegoose";
+import { ImageHelper } from "../../api/util/ImageHelper";
 
 export type AuthToken = {
   accessToken: string;
@@ -26,6 +27,8 @@ export type AuthToken = {
   });
 })
 export class User extends Typegoose {
+  @prop()
+  _id: string;
   @prop({ required: true })
   email: string;
   @prop({ required: true })
@@ -37,7 +40,7 @@ export class User extends Typegoose {
   @prop()
   passwordResetExpired: Date;
 
-  @prop({ default: "/images/default_profile.png" })
+  @prop({ default: ImageHelper.DEFAULT_PROFILE_IMAGE })
   profileImageUrl: string;
 
   @prop()

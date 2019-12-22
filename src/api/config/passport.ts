@@ -12,12 +12,12 @@ import bcrypt from "bcrypt-nodejs";
 const LocalStrategy = passportLocal.Strategy;
 const FacebookStrategy = passportFacebook.Strategy;
 
-passport.serializeUser<any, any>((user, done) => {
-  done(undefined, user.id);
+passport.serializeUser<any, any>((user: User, done) => {
+  done(undefined, user._id);
 });
 
 passport.deserializeUser((id, done) => {
-  UserModel.findById(id, (err, user) => {
+  UserModel.findById(id, (err, user: User) => {
     done(err, user);
   });
 });
@@ -29,7 +29,7 @@ const opts = {
 
 passport.use(
   new JwtStrategy(opts, function(jwt_payload, done) {
-    UserModel.findOne({ id: jwt_payload.sub }, function(err, user) {
+    UserModel.findOne({ id: jwt_payload.sub }, function(err, user: User) {
       if (err) {
         return done(err, false);
       }

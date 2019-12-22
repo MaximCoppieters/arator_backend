@@ -1,6 +1,7 @@
 import * as mongoose from "mongoose";
 import { Typegoose, prop, instanceMethod } from "typegoose";
 import { User } from "./User";
+import { WeightUnit } from "./WeightUnit";
 
 export class Product extends Typegoose {
   @prop({ required: true })
@@ -13,7 +14,7 @@ export class Product extends Typegoose {
   priceInEuro: number;
   @prop({ required: true })
   amount: number;
-  @prop({ required: true })
+  @prop({ required: true, enum: WeightUnit })
   weightUnit: string;
   @prop()
   type: string;

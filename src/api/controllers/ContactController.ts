@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { Request, Response } from "express";
-import { Validator } from "../util/ValidationRuleBuilder";
+import { UserValidator } from "../util/UserValidator";
 import { Service } from "typedi";
 
 const transporter = nodemailer.createTransport({
@@ -13,9 +13,9 @@ const transporter = nodemailer.createTransport({
 
 @Service()
 export class ContactController {
-  private validator: Validator;
+  private validator: UserValidator;
 
-  constructor(validator: Validator) {
+  constructor(validator: UserValidator) {
     this.validator = validator;
   }
 

@@ -12,6 +12,7 @@ import { MONGODB_URI } from "./api/util/secrets";
 import ProjectRouter from "./api/router";
 import { Container, Service } from "typedi";
 import { getDatabaseClient } from "./data/db_client";
+import formData from "express-form-data";
 
 // Load environment variables from .env file, where API keys and passwords are configured
 dotenv.config({ path: ".env" });
@@ -21,6 +22,18 @@ const app = express();
 // Connect to MongoDB
 const mongoUrl = MONGODB_URI;
 (<any>mongoose).Promise = bluebird;
+
+export class AppInfo {
+  static publicFolder = path.join(__dirname, "/public");
+  static publicImages = path.join(AppInfo.publicFolder, "/images");
+  static publicUserImages = path.join(AppInfo.publicImages, "/users");
+  static publicUserImagesRelative = AppInfo.getRelativeUserImages();
+
+  private static getRelativeUserImages(): string {
+    const beginRelative: number = AppInfo.publicUserImages.indexOf("/images");
+    return AppInfo.publicUserImages.substring(beginRelative);
+  }
+}
 
 export async function setup() {
   const dbClient = await getDatabaseClient(mongoUrl);
@@ -35,7 +48,10 @@ export async function setup() {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(passport.initialize());
-  app.use(passport.session());
+  app.use(formData.parse({ uploadDir: AppInfo.publicFolder }));
+  app.use(formData.format());
+  app.use(formData.stream());
+  app.use(formData.union());
   app.use(lusca.xframe("SAMEORIGIN"));
   app.use(lusca.xssProtection(true));
   app.use(bodyParser.json());

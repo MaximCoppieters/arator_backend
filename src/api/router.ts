@@ -17,6 +17,7 @@ import { Service } from "typedi";
 @Service()
 export default class ProjectRouter {
   private _expressRouter = express.Router();
+  private jwtAuth = passport.authenticate("jwt", { session: false });
 
   constructor(
     private _userController: UserController,
@@ -34,6 +35,7 @@ export default class ProjectRouter {
 
   private setupUserController() {
     this._expressRouter
+      .get("/user", this.jwtAuth, this._userController.getUserDetails)
       .post("/login", this._userController.postLogin)
       .post("/account/forgot", this._userController.postForgot)
       .get("/reset/:token", this._userController.getReset)
@@ -89,11 +91,13 @@ export default class ProjectRouter {
   setupProductController() {
     this._expressRouter
       .get("/product", this._productController.getAll)
-      .post(
-        "/product",
-        passport.authenticate("jwt", { session: false }),
-        this._productController.post
-      );
+      .delete("/product", this._productController.delete)
+      .get(
+        "/product/personal",
+        this.jwtAuth,
+        this._productController.getPersonalProducts
+      )
+      .post("/product", this.jwtAuth, this._productController.post);
   }
 
   get expressRouter() {

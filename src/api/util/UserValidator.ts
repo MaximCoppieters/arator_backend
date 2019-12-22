@@ -1,11 +1,10 @@
 import Joi, { SchemaMap, object } from "@hapi/joi";
 import { StringSchema, ObjectSchema } from "@hapi/joi";
 import { Service } from "typedi";
+import { ValidationRuleBuilder } from "./Validator";
 
-class ValidationRuleBuilder {
-  private _schema: SchemaMap = {};
-
-  withEmail(): ValidationRuleBuilder {
+class UserValidationRuleBuilder extends ValidationRuleBuilder {
+  withEmail(): UserValidationRuleBuilder {
     this.addRule(
       "email",
       Joi.string()
@@ -14,19 +13,18 @@ class ValidationRuleBuilder {
     );
     return this;
   }
-  withMessage(): ValidationRuleBuilder {
+  withMessage(): UserValidationRuleBuilder {
     this.addRule("message", this.requiredString());
     return this;
   }
-
-  withName(): ValidationRuleBuilder {
+  withName(): UserValidationRuleBuilder {
     this.addRule(
       "name",
       this.requiredString().error(() => "Please fill in your name")
     );
     return this;
   }
-  withPassword(): ValidationRuleBuilder {
+  withPassword(): UserValidationRuleBuilder {
     this.addRule(
       "password",
       this.requiredString()
@@ -35,27 +33,16 @@ class ValidationRuleBuilder {
     );
     return this;
   }
-  withConfirmPassword(): ValidationRuleBuilder {
+  withConfirmPassword(): UserValidationRuleBuilder {
     this._schema["confirmPassword"] = Joi.ref("password");
     return this;
-  }
-
-  build(): ObjectSchema {
-    return Joi.object().keys(this._schema);
-  }
-  private requiredString() {
-    return Joi.string().required();
-  }
-
-  private addRule(propertyName: string, rule: StringSchema): void {
-    this._schema[propertyName] = rule;
   }
 }
 
 @Service()
-export class Validator {
+export class UserValidator {
   public validatePostContact(fields: Object) {
-    const validationRules = new ValidationRuleBuilder()
+    const validationRules = new UserValidationRuleBuilder()
       .withName()
       .withEmail()
       .withMessage()
@@ -65,7 +52,7 @@ export class Validator {
   }
 
   private confirmPasswordValidationRules(): ObjectSchema {
-    return new ValidationRuleBuilder()
+    return new UserValidationRuleBuilder()
       .withName()
       .withEmail()
       .withPassword()
@@ -74,7 +61,7 @@ export class Validator {
   }
 
   public validatePostLogin(fields: Object) {
-    const validationRules = new ValidationRuleBuilder()
+    const validationRules = new UserValidationRuleBuilder()
       .withEmail()
       .withPassword()
       .build();
@@ -87,7 +74,7 @@ export class Validator {
   }
 
   public validatePostUpdateProfile(fields: Object) {
-    const validationRules = new ValidationRuleBuilder().build();
+    const validationRules = new UserValidationRuleBuilder().build();
 
     return Joi.validate(fields, validationRules);
   }
@@ -98,7 +85,7 @@ export class Validator {
   }
 
   public validatePostForgotPassword(fields: Object) {
-    const validationRules = new ValidationRuleBuilder().withEmail().build();
+    const validationRules = new UserValidationRuleBuilder().withEmail().build();
 
     return Joi.validate(fields, validationRules);
   }

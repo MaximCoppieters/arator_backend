@@ -7,23 +7,38 @@ import { Request, Response, NextFunction } from "express";
 import { IVerifyOptions } from "passport-local";
 import { WriteError } from "mongodb";
 import "../config/passport";
-import { Validator } from "../util/ValidationRuleBuilder";
+import { UserValidator } from "../util/UserValidator";
 import { Service } from "typedi";
 import { User, UserModel, AuthToken } from "../../data/models/User";
-import { json } from "body-parser";
+import { ImageHelper } from "../util/ImageHelper";
 
 @Service()
 export class UserController {
-  constructor(private validator: Validator) {}
+  constructor(
+    private validator: UserValidator,
+    private imageHelper: ImageHelper
+  ) {}
+
+  /**
+   * GET /api/user
+   * Get user details from jwttoken
+   */
+  getUserDetails = (req: Request, res: Response, next: NextFunction) => {
+    const user: any = req.user;
+    user.password = undefined;
+    this.imageHelper.prependUserImagePaths(user);
+    console.log(user.profileImageUrl);
+    return res.status(200).json(user);
+  };
+
   /**
    * POST /api/login
    * Sign in using email and password.
    */
   postLogin = (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.body);
     const { error } = this.validator.validatePostLogin(req.body);
     if (error) {
-      return res.status(400).send(error);
+      return res.status(400).json(error);
     }
 
     passport.authenticate(
