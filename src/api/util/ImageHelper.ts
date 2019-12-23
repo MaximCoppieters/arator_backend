@@ -23,11 +23,11 @@ export class ImageHelper {
   }
 
   private getUserImageFolder(user: User) {
-    return path.join(AppInfo.publicUserImages, user._id);
+    return path.join(AppInfo.publicUserImages, user._id.toString());
   }
 
   private getRelativeUserImageFolder(user: User) {
-    return path.join(AppInfo.publicUserImagesRelative, user._id);
+    return path.join(AppInfo.publicUserImagesRelative, user._id.toString());
   }
 
   private userImageFolderAbsent(path: string) {

@@ -26,9 +26,9 @@ class ReviewValidationRuleBuilder extends ValidationRuleBuilder {
   }
   withDifferentReviewedAndReviewer(): ReviewValidationRuleBuilder {
     this.addRule(
-      "reviewedUserId",
+      "reviewerId",
       Joi.string()
-        .invalid(Joi.ref("reviewer._id"))
+        .invalid(Joi.ref("reviewedId"))
         .error(() => "You can't review yourself")
     );
     return this;
@@ -37,17 +37,13 @@ class ReviewValidationRuleBuilder extends ValidationRuleBuilder {
 
 @Service()
 export class ReviewValidator {
-  public validateNewReview(fields: Object, reviewedUserId: String) {
-    const reviewCopy = JSON.parse(JSON.stringify(fields));
-    reviewCopy.reviewedUserId = reviewedUserId;
-    console.log(reviewCopy);
-
+  public validateNewReview(fields: Object) {
     const validationRules = new ReviewValidationRuleBuilder()
       .withRating()
       .withComment()
       .withDifferentReviewedAndReviewer()
       .build();
 
-    return Joi.validate(reviewCopy, validationRules);
+    return Joi.validate(fields, validationRules);
   }
 }

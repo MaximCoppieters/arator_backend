@@ -57,6 +57,7 @@ export class ProductController {
       weightUnit: req.body.weightUnit,
       seller: req.user,
     });
+    console.log(product);
     const { error } = this.validator.validateNewProduct(product);
 
     if (error) {

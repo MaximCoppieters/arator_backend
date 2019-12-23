@@ -1,8 +1,16 @@
 import bcrypt from "bcrypt-nodejs";
 import mongoose from "mongoose";
-import { prop, Typegoose, ModelType, InstanceType, pre } from "typegoose";
+import {
+  prop,
+  Typegoose,
+  ModelType,
+  InstanceType,
+  pre,
+  Ref,
+  arrayProp,
+} from "typegoose";
 import { ImageHelper } from "../../api/util/ImageHelper";
-import { Review } from "./Review";
+import { UserReviewModel, UserReview } from "./UserReview";
 
 export type AuthToken = {
   accessToken: string;
@@ -42,8 +50,10 @@ export class User extends Typegoose {
 
   @prop({ default: ImageHelper.DEFAULT_PROFILE_IMAGE })
   profileImageUrl: string;
-  @prop({ default: [] })
-  reviews: Review[];
+  @arrayProp({
+    itemsRef: "UserReview",
+  })
+  reviews: Ref<UserReview>[];
 
   @prop()
   about: string;

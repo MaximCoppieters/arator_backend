@@ -11,7 +11,7 @@ import { UserValidator } from "../util/UserValidator";
 import { Service } from "typedi";
 import { User, UserModel, AuthToken } from "../../data/models/User";
 import { ImageHelper } from "../util/ImageHelper";
-import { Review } from "../../data/models/Review";
+import { UserReview, UserReviewModel } from "../../data/models/UserReview";
 import { ReviewValidator } from "../util/ReviewValidator";
 
 @Service()
@@ -26,39 +26,48 @@ export class UserController {
    * GET /api/user
    * Get user details from jwttoken
    */
-  getUserDetails = (req: Request, res: Response, next: NextFunction) => {
+  getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
     const user: any = req.user;
     user.password = undefined;
     this.imageHelper.prependUserImagePaths(user);
-    console.log(user.profileImageUrl);
     return res.status(200).json(user);
   };
 
   /**
    * POST /api/user/{id}/review
-   * Get user details from jwttoken
+   * Add review to user
    */
   postReview = async (req: Request, res: Response, next: NextFunction) => {
     const user: any = req.user;
-    const review = {
+    const review = new UserReviewModel({
       comment: req.body.comment,
       rating: req.body.rating,
-      reviewer: user,
-    };
-    const reviewedUserId = req.params.id;
-    const { error } = this.reviewValidator.validateNewReview(
-      review,
-      reviewedUserId
-    );
+      reviewer: user._id,
+    });
+    const { error } = this.reviewValidator.validateNewReview(review);
     if (error) {
       return res.status(400).json(error);
     }
 
     try {
-      const reviewedUser: User = await UserModel.findById(reviewedUserId);
-      reviewedUser.reviews.push(review as Review);
-      await UserModel.findByIdAndUpdate(reviewedUser._id, reviewedUser);
-      return res.status(201).end();
+      const { _id } = await review.save();
+      const reviewed = await UserModel.findById(req.params.id);
+      reviewed.reviews.push(_id);
+      reviewed.save();
+
+      return res.status(201).json({ id: _id });
+    } catch (err) {
+      return res.status(400).json(err);
+    }
+  };
+
+  // TODO: remove this endpoint
+  getUserReviews = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reviews = await UserReviewModel.find()
+        .populate("reviewer")
+        .exec();
+      return res.status(201).json(reviews);
     } catch (err) {
       return res.status(400).json(err);
     }
@@ -136,8 +145,11 @@ export class UserController {
     });
   };
 
+  // TODO: Remove endpoint
   async getAll(req: Request, res: Response, next: NextFunction) {
-    const users = await UserModel.find();
+    const users = await UserModel.find()
+      .populate("reviews")
+      .exec();
     return res.json(users);
   }
 
