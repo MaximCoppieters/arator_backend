@@ -3,14 +3,14 @@ import mongoose from "mongoose";
 import {
   prop,
   Typegoose,
-  ModelType,
-  InstanceType,
   pre,
   Ref,
   arrayProp,
+  ModelType,
+  instanceMethod,
 } from "typegoose";
 import { ImageHelper } from "../../api/util/ImageHelper";
-import { UserReviewModel, UserReview } from "./UserReview";
+import { UserReview } from "./UserReview";
 
 export type AuthToken = {
   accessToken: string;
@@ -54,6 +54,10 @@ export class User extends Typegoose {
     itemsRef: "UserReview",
   })
   reviews: Ref<UserReview>[];
+  @prop({ default: 0 })
+  averageRating: number;
+  @prop({ default: 0 })
+  ratingCount: number;
 
   @prop()
   about: string;
@@ -66,6 +70,15 @@ export class User extends Typegoose {
   google: string;
   @prop()
   tokens: string[];
+
+  @instanceMethod
+  addReview(review: UserReview) {
+    this.reviews.push(review);
+    this.averageRating =
+      (this.averageRating * this.ratingCount + review.rating) /
+      (this.ratingCount + 1);
+    this.ratingCount++;
+  }
 }
 
 export const UserModel = new User().getModelForClass(User);

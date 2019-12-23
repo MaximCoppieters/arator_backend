@@ -11,7 +11,7 @@ import { UserValidator } from "../util/UserValidator";
 import { Service } from "typedi";
 import { User, UserModel, AuthToken } from "../../data/models/User";
 import { ImageHelper } from "../util/ImageHelper";
-import { UserReview, UserReviewModel } from "../../data/models/UserReview";
+import { UserReviewModel } from "../../data/models/UserReview";
 import { ReviewValidator } from "../util/ReviewValidator";
 
 @Service()
@@ -35,7 +35,7 @@ export class UserController {
 
   /**
    * POST /api/user/{id}/review
-   * Add review to user
+   * Add review to user with target id
    */
   postReview = async (req: Request, res: Response, next: NextFunction) => {
     const user: any = req.user;
@@ -50,12 +50,12 @@ export class UserController {
     }
 
     try {
-      const { _id } = await review.save();
+      await review.save();
       const reviewed = await UserModel.findById(req.params.id);
-      reviewed.reviews.push(_id);
+      reviewed.addReview(review);
       reviewed.save();
 
-      return res.status(201).json({ id: _id });
+      return res.status(201).json({ _id: review._id });
     } catch (err) {
       return res.status(400).json(err);
     }
