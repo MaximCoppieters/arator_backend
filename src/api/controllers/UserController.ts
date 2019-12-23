@@ -11,12 +11,15 @@ import { UserValidator } from "../util/UserValidator";
 import { Service } from "typedi";
 import { User, UserModel, AuthToken } from "../../data/models/User";
 import { ImageHelper } from "../util/ImageHelper";
+import { Review } from "../../data/models/Review";
+import { ReviewValidator } from "../util/ReviewValidator";
 
 @Service()
 export class UserController {
   constructor(
-    private validator: UserValidator,
-    private imageHelper: ImageHelper
+    private userValidator: UserValidator,
+    private imageHelper: ImageHelper,
+    private reviewValidator: ReviewValidator
   ) {}
 
   /**
@@ -32,11 +35,41 @@ export class UserController {
   };
 
   /**
+   * POST /api/user/{id}/review
+   * Get user details from jwttoken
+   */
+  postReview = async (req: Request, res: Response, next: NextFunction) => {
+    const user: any = req.user;
+    const review = {
+      comment: req.body.comment,
+      rating: req.body.rating,
+      reviewer: user,
+    };
+    const reviewedUserId = req.params.id;
+    const { error } = this.reviewValidator.validateNewReview(
+      review,
+      reviewedUserId
+    );
+    if (error) {
+      return res.status(400).json(error);
+    }
+
+    try {
+      const reviewedUser: User = await UserModel.findById(reviewedUserId);
+      reviewedUser.reviews.push(review as Review);
+      await UserModel.findByIdAndUpdate(reviewedUser._id, reviewedUser);
+      return res.status(201).end();
+    } catch (err) {
+      return res.status(400).json(err);
+    }
+  };
+
+  /**
    * POST /api/login
    * Sign in using email and password.
    */
   postLogin = (req: Request, res: Response, next: NextFunction) => {
-    const { error } = this.validator.validatePostLogin(req.body);
+    const { error } = this.userValidator.validatePostLogin(req.body);
     if (error) {
       return res.status(400).json(error);
     }
@@ -71,7 +104,7 @@ export class UserController {
    * Create a new local account.
    */
   postSignup = (req: Request, res: Response, next: NextFunction) => {
-    const { error } = this.validator.validatePostSignup(req.body);
+    const { error } = this.userValidator.validatePostSignup(req.body);
 
     if (error) {
       return res.status(400).json({ error });
@@ -113,7 +146,7 @@ export class UserController {
    * Update profile information.
    */
   postUpdateProfile = (req: Request, res: Response, next: NextFunction) => {
-    const { error } = this.validator.validatePostUpdateProfile(req.body);
+    const { error } = this.userValidator.validatePostUpdateProfile(req.body);
 
     if (error) {
       return res.status(400).json({
@@ -146,7 +179,7 @@ export class UserController {
    * Update current password.
    */
   postUpdatePassword = (req: Request, res: Response, next: NextFunction) => {
-    const { error } = this.validator.validatePostUpdatePassword(req.body);
+    const { error } = this.userValidator.validatePostUpdatePassword(req.body);
 
     if (error) {
       return res.status(400).json({
@@ -236,7 +269,7 @@ export class UserController {
    * Process the reset password request.
    */
   postReset = (req: Request, res: Response, next: NextFunction) => {
-    const { error } = this.validator.validatePostForgotPassword(req.body);
+    const { error } = this.userValidator.validatePostForgotPassword(req.body);
 
     if (error) {
       return res.status(400).json({ errors: error.message });
@@ -306,7 +339,7 @@ export class UserController {
    * Create a random token, then the send user an email with a reset link.
    */
   postForgot = (req: Request, res: Response, next: NextFunction) => {
-    const { error } = this.validator.validatePostForgotPassword(req.body);
+    const { error } = this.userValidator.validatePostForgotPassword(req.body);
 
     if (error) {
       return res.status(400).json({ message: error.message });

@@ -2,6 +2,7 @@ import bcrypt from "bcrypt-nodejs";
 import mongoose from "mongoose";
 import { prop, Typegoose, ModelType, InstanceType, pre } from "typegoose";
 import { ImageHelper } from "../../api/util/ImageHelper";
+import { Review } from "./Review";
 
 export type AuthToken = {
   accessToken: string;
@@ -27,9 +28,8 @@ export type AuthToken = {
   });
 })
 export class User extends Typegoose {
+  _id?: string;
   @prop()
-  _id: string;
-  @prop({ required: true })
   email: string;
   @prop({ required: true })
   name: string;
@@ -42,6 +42,8 @@ export class User extends Typegoose {
 
   @prop({ default: ImageHelper.DEFAULT_PROFILE_IMAGE })
   profileImageUrl: string;
+  @prop({ default: [] })
+  reviews: Review[];
 
   @prop()
   about: string;

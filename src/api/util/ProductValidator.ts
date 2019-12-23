@@ -1,5 +1,6 @@
-import { ValidationRuleBuilder, validator } from "./Validator";
+import { ValidationRuleBuilder } from "./Validator";
 import { Service } from "typedi";
+import Joi from "@hapi/joi";
 
 class ProductValidationRuleBuilder extends ValidationRuleBuilder {
   static readonly MIN_PRICE = 0.0;
@@ -8,9 +9,8 @@ class ProductValidationRuleBuilder extends ValidationRuleBuilder {
   withPrice(): ProductValidationRuleBuilder {
     this.addRule(
       "priceInEuro",
-      validator
-        .decimal()
-        .greater(ProductValidationRuleBuilder.MIN_PRICE)
+      Joi.number()
+        .min(ProductValidationRuleBuilder.MIN_PRICE)
         .error(
           () => `Price greater than ${ProductValidationRuleBuilder.MIN_PRICE}`
         )
@@ -20,8 +20,7 @@ class ProductValidationRuleBuilder extends ValidationRuleBuilder {
   withAmount(): ProductValidationRuleBuilder {
     this.addRule(
       "amount",
-      validator
-        .number()
+      Joi.number()
         .min(1)
         .error(() => "Amount greater than 0")
     );
@@ -75,6 +74,6 @@ export class ProductValidator {
       .withDescription()
       .build();
 
-    return validator.validate(fields, validationRules);
+    return Joi.validate(fields, validationRules);
   }
 }

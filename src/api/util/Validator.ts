@@ -1,4 +1,5 @@
 import { SchemaMap, ObjectSchema, StringSchema, Schema } from "@hapi/joi";
+import Joi from "@hapi/joi";
 
 export abstract class ValidationRuleBuilder {
   protected _schema: SchemaMap = {};
@@ -19,7 +20,3 @@ export abstract class ValidationRuleBuilder {
     this._schema[propertyName] = rule;
   }
 }
-
-const Joi = require("@hapi/joi");
-const DecimalExtension = require("joi-decimal");
-export const validator = Joi.extend(DecimalExtension);

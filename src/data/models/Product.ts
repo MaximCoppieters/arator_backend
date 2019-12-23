@@ -4,6 +4,7 @@ import { User } from "./User";
 import { WeightUnit } from "./WeightUnit";
 
 export class Product extends Typegoose {
+  _id?: string;
   @prop({ required: true })
   name: string;
   @prop({ required: true })
