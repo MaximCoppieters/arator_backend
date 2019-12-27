@@ -27,6 +27,7 @@ const opts = {
   secretOrKey: process.env.JWT_SECRET,
 };
 
+// Middleware to add user to req
 passport.use(
   new JwtStrategy(opts, function(jwt_payload, done) {
     UserModel.findOne({ id: jwt_payload.sub }, function(err, user: User) {
@@ -39,7 +40,9 @@ passport.use(
         return done(undefined, false);
         // or you could create a new account
       }
-    });
+    })
+      .populate("userSettings")
+      .populate("address");
   })
 );
 /**

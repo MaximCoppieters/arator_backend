@@ -13,13 +13,22 @@ import { User, UserModel, AuthToken } from "../../data/models/User";
 import { ImageHelper } from "../util/ImageHelper";
 import { UserReviewModel } from "../../data/models/UserReview";
 import { ReviewValidator } from "../util/ReviewValidator";
+import { UserSettingsValidator } from "../util/UserSettingsValidator";
+import { UserSettingsModel } from "../../data/models/UserSettings";
+import { UserAddressValidator } from "../util/AddressValidator";
+import { AddressModel } from "../../data/models/Address";
+import { GeoService } from "../../business/services/GeoService";
+import { Typegoose } from "@hasezoey/typegoose";
 
 @Service()
 export class UserController {
   constructor(
     private userValidator: UserValidator,
     private imageHelper: ImageHelper,
-    private reviewValidator: ReviewValidator
+    private reviewValidator: ReviewValidator,
+    private userSettingsValidator: UserSettingsValidator,
+    private userAddressValidator: UserAddressValidator,
+    private geoService: GeoService
   ) {}
 
   /**
@@ -118,11 +127,8 @@ export class UserController {
     if (error) {
       return res.status(400).json({ error });
     }
-    const user = new UserModel({
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-    });
+
+    const user = new UserModel(req.body);
 
     UserModel.findOne({ email: req.body.email }, (err, existingUser) => {
       if (err) {
@@ -146,12 +152,61 @@ export class UserController {
   };
 
   // TODO: Remove endpoint
-  async getAll(req: Request, res: Response, next: NextFunction) {
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
     const users = await UserModel.find()
       .populate("reviews")
+      .populate("userSettings")
+      .populate("address")
       .exec();
     return res.json(users);
-  }
+  };
+
+  /**
+   * PUT /api/user/settings
+   * Update profile information.
+   */
+  putUserSettings = async (req: Request, res: Response, next: NextFunction) => {
+    const { error } = this.userSettingsValidator.validateUserSettings(req.body);
+    if (error) {
+      return res.status(400).json(error);
+    }
+    const userSettings = new UserSettingsModel(req.body);
+
+    try {
+      UserSettingsModel.findByIdAndUpdate(userSettings._id, userSettings);
+    } catch (error) {
+      return res.status(400).json(error);
+    }
+    return res.status(200).end();
+  };
+
+  /**
+   * POST /api/user/address
+   * Change User Address.
+   */
+  postUserAddress = async (req: Request, res: Response, next: NextFunction) => {
+    const { error } = this.userAddressValidator.validateNewUserAddress(
+      req.body
+    );
+    if (error) {
+      return res.status(400).json(error);
+    }
+
+    try {
+      const addressEntry: any = await this.geoService.geocode(
+        req.body.addressLine
+      );
+      const address = new AddressModel(addressEntry);
+      address.save();
+      const user: any = req.user;
+      user.address = address;
+      UserModel.findByIdAndUpdate(user._id, user as User);
+      return res.status(201).end();
+    } catch (error) {
+      console.log(error);
+      return res.status(400).send(error);
+    }
+  };
 
   /**
    * POST /api/account/profile

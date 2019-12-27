@@ -1,5 +1,5 @@
 import * as mongoose from "mongoose";
-import { Typegoose, prop, instanceMethod } from "typegoose";
+import { Typegoose, prop, instanceMethod } from "@hasezoey/typegoose";
 import { User } from "./User";
 import { WeightUnit } from "./WeightUnit";
 

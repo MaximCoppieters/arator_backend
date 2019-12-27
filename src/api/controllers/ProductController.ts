@@ -19,6 +19,7 @@ export class ProductController {
     const products: Array<Product> = await ProductModel.find().select({
       "seller.password": 0,
       "seller.email": 0,
+      "seller.userSettings": 0,
     });
 
     this.imageHelper.prependProductImagePaths(products);
@@ -36,6 +37,7 @@ export class ProductController {
     }).select({
       "seller.password": 0,
       "seller.email": 0,
+      "seller.userSettings": 0,
     });
 
     this.imageHelper.prependProductImagePaths(products);

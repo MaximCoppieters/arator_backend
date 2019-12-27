@@ -9,7 +9,7 @@
     "sourceMap": true,
     "types": ["reflect-metadata", "jest"],
     "outDir": "dist",
-    "baseUrl": ".",
+    "baseUrl": "./",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {

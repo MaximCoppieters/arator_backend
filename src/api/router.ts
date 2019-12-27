@@ -44,6 +44,8 @@ export default class ProjectRouter {
       .post("/contact", this._contactController.postContact)
       .get("/review", this._userController.getUserReviews)
       .post("/user/:id/review", this.jwtAuth, this._userController.postReview)
+      .put("/user/settings", this.jwtAuth, this._userController.putUserSettings)
+      .post("/user/address", this.jwtAuth, this._userController.postUserAddress)
       .post(
         "/account/profile",
         passportConfig.isAuthenticated,

@@ -6,11 +6,14 @@ import {
   pre,
   Ref,
   arrayProp,
-  ModelType,
   instanceMethod,
-} from "typegoose";
+  staticMethod,
+  ModelType,
+} from "@hasezoey/typegoose";
+import { UserSettings, UserSettingsModel } from "./UserSettings";
 import { ImageHelper } from "../../api/util/ImageHelper";
 import { UserReview } from "./UserReview";
+import { Address, AddressModel } from "./Address";
 
 export type AuthToken = {
   accessToken: string;
@@ -31,6 +34,9 @@ export type AuthToken = {
         return next(err);
       }
       user.password = hash;
+      const userSettings = new UserSettingsModel();
+      userSettings.save();
+      user.userSettings = userSettings;
       next();
     });
   });
@@ -61,6 +67,18 @@ export class User extends Typegoose {
 
   @prop()
   about: string;
+
+  @prop({
+    required: true,
+    ref: "UserSettings",
+  })
+  userSettings: Ref<UserSettings>;
+
+  @prop({
+    required: true,
+    ref: "Address",
+  })
+  address: Ref<Address>;
 
   @prop()
   facebook: string;
