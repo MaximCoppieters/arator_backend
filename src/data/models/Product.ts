@@ -1,8 +1,9 @@
 import * as mongoose from "mongoose";
-import { Typegoose, prop, instanceMethod } from "@hasezoey/typegoose";
+import { Typegoose, prop, instanceMethod, index } from "@hasezoey/typegoose";
 import { User } from "./User";
 import { WeightUnit } from "./WeightUnit";
 
+@index({ "seller.address.position": "2dsphere" })
 export class Product extends Typegoose {
   _id?: string;
   @prop({ required: true })
@@ -19,7 +20,10 @@ export class Product extends Typegoose {
   weightUnit: string;
   @prop()
   type: string;
-  @prop({ required: true })
+  @prop({
+    required: true,
+    ref: "User",
+  })
   seller: User;
 }
 

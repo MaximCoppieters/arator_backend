@@ -14,6 +14,7 @@ import { UserSettings, UserSettingsModel } from "./UserSettings";
 import { ImageHelper } from "../../api/util/ImageHelper";
 import { UserReview } from "./UserReview";
 import { Address, AddressModel } from "./Address";
+import { Product } from "./Product";
 
 export type AuthToken = {
   accessToken: string;
@@ -56,6 +57,11 @@ export class User extends Typegoose {
 
   @prop({ default: ImageHelper.DEFAULT_PROFILE_IMAGE })
   profileImageUrl: string;
+
+  @arrayProp({
+    itemsRef: "Product",
+  })
+  products: Ref<Product>[];
   @arrayProp({
     itemsRef: "UserReview",
   })
@@ -65,7 +71,7 @@ export class User extends Typegoose {
   @prop({ default: 0 })
   ratingCount: number;
 
-  @prop()
+  @prop({ default: "" })
   about: string;
 
   @prop({

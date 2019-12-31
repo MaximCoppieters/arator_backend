@@ -1,12 +1,17 @@
-import { Typegoose, prop, Ref } from "@hasezoey/typegoose";
+import { Typegoose, prop, index, arrayProp, Ref } from "@hasezoey/typegoose";
+import { User } from "./User";
 
+@index({ position: "2dsphere" })
 export class Address extends Typegoose {
   _id?: string;
   addressLine: string;
-  @prop({ required: true })
+
+  @arrayProp({ items: Array })
+  position?: [[Number]];
+
   latitude: number;
-  @prop({ required: true })
   longitude: number;
+
   @prop({ required: true })
   city: string;
   @prop({ required: true })
@@ -17,6 +22,11 @@ export class Address extends Typegoose {
   streetNumber: string;
   @prop({ required: true })
   country: string;
+  @prop({
+    required: true,
+    ref: "User",
+  })
+  user: Ref<User>;
 }
 
 export const AddressModel = new Address().getModelForClass(Address);

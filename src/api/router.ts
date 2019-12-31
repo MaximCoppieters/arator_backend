@@ -94,7 +94,7 @@ export default class ProjectRouter {
 
   setupProductController() {
     this._expressRouter
-      .get("/product", this._productController.getAll)
+      .get("/product", this._productController.getProductsInDistanceRange)
       .delete("/product", this._productController.delete)
       .get(
         "/product/personal",

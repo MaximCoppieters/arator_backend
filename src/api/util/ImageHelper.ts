@@ -52,7 +52,9 @@ export class ImageHelper {
     products.forEach(product => {
       const userImageFolder = this.getRelativeUserImageFolder(product.seller);
       product.imageUrl = path.join(userImageFolder, product.imageUrl);
-      this.prependUserImagePaths(product.seller);
+      if (product.seller.profileImageUrl) {
+        this.prependUserImagePaths(product.seller);
+      }
     });
   }
 

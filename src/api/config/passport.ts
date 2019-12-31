@@ -40,9 +40,7 @@ passport.use(
         return done(undefined, false);
         // or you could create a new account
       }
-    })
-      .populate("userSettings")
-      .populate("address");
+    }).populate("userSettings");
   })
 );
 /**

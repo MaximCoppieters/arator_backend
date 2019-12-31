@@ -5,7 +5,7 @@ import passport from "passport";
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { IVerifyOptions } from "passport-local";
-import { WriteError } from "mongodb";
+import { WriteError, ObjectId } from "mongodb";
 import "../config/passport";
 import { UserValidator } from "../util/UserValidator";
 import { Service } from "typedi";
@@ -16,9 +16,9 @@ import { ReviewValidator } from "../util/ReviewValidator";
 import { UserSettingsValidator } from "../util/UserSettingsValidator";
 import { UserSettingsModel } from "../../data/models/UserSettings";
 import { UserAddressValidator } from "../util/AddressValidator";
-import { AddressModel } from "../../data/models/Address";
+import { AddressModel, Address } from "../../data/models/Address";
 import { GeoService } from "../../business/services/GeoService";
-import { Typegoose } from "@hasezoey/typegoose";
+import { UserRepo } from "../../data/repo/UserRepo";
 
 @Service()
 export class UserController {
@@ -28,7 +28,8 @@ export class UserController {
     private reviewValidator: ReviewValidator,
     private userSettingsValidator: UserSettingsValidator,
     private userAddressValidator: UserAddressValidator,
-    private geoService: GeoService
+    private geoService: GeoService,
+    private userRepo: UserRepo
   ) {}
 
   /**
@@ -36,10 +37,12 @@ export class UserController {
    * Get user details from jwttoken
    */
   getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
-    const user: any = req.user;
-    user.password = undefined;
-    this.imageHelper.prependUserImagePaths(user);
-    return res.status(200).json(user);
+    const userWithDetails = await UserModel.findById((<User>req.user)._id)
+      .populate("address")
+      .populate("userSettings");
+    userWithDetails.password = undefined;
+    this.imageHelper.prependUserImagePaths(userWithDetails);
+    return res.status(200).json(userWithDetails);
   };
 
   /**
@@ -47,11 +50,11 @@ export class UserController {
    * Add review to user with target id
    */
   postReview = async (req: Request, res: Response, next: NextFunction) => {
-    const user: any = req.user;
     const review = new UserReviewModel({
       comment: req.body.comment,
       rating: req.body.rating,
-      reviewer: user._id,
+      reviewer: (<User>req.user)._id,
+      reviewedId: req.params.id,
     });
     const { error } = this.reviewValidator.validateNewReview(review);
     if (error) {
@@ -59,11 +62,7 @@ export class UserController {
     }
 
     try {
-      await review.save();
-      const reviewed = await UserModel.findById(req.params.id);
-      reviewed.addReview(review);
-      reviewed.save();
-
+      this.userRepo.saveReview(review);
       return res.status(201).json({ _id: review._id });
     } catch (err) {
       return res.status(400).json(err);
@@ -196,14 +195,17 @@ export class UserController {
       const addressEntry: any = await this.geoService.geocode(
         req.body.addressLine
       );
-      const address = new AddressModel(addressEntry);
-      address.save();
-      const user: any = req.user;
-      user.address = address;
-      UserModel.findByIdAndUpdate(user._id, user as User);
+      addressEntry.position = [addressEntry.longitude, addressEntry.latitude];
+      (addressEntry.user = (<User>req.user)._id),
+        await AddressModel.findByIdAndUpdate(
+          (<User>req.user).address,
+          addressEntry as Address,
+          {
+            upsert: true,
+          }
+        );
       return res.status(201).end();
     } catch (error) {
-      console.log(error);
       return res.status(400).send(error);
     }
   };

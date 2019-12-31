@@ -4,41 +4,38 @@ import { ProductModel, Product } from "../../data/models/Product";
 import { ProductValidator } from "../util/ProductValidator";
 import { ImageHelper } from "../util/ImageHelper";
 import { UserModel, User } from "../../data/models/User";
-import { WeightUnit } from "../../data/models/WeightUnit";
+import { AddressModel, Address } from "../../data/models/Address";
+import { ProductRepo } from "../../data/repo/ProductRepo";
 
 @Service()
 export class ProductController {
   constructor(
     private validator: ProductValidator,
-    private imageHelper: ImageHelper
+    private imageHelper: ImageHelper,
+    private productRepo: ProductRepo
   ) {}
   /**
    * GET /api/product
    */
-  getAll = async (req: Request, res: Response) => {
-    const products: Array<Product> = await ProductModel.find().select({
-      "seller.password": 0,
-      "seller.email": 0,
-      "seller.userSettings": 0,
-    });
+  getProductsInDistanceRange = async (req: Request, res: Response) => {
+    const userLocation = req.body.position;
+    // this.imageHelper.prependProductImagePaths(products);
 
-    this.imageHelper.prependProductImagePaths(products);
-
-    res.send(products);
+    const products: Product[] = await this.productRepo.getProductsInRange(
+      userLocation,
+      5
+    );
+    res.json(products);
+    // res.json(products);
   };
 
   /**
    * GET /api/product/personal
    */
   getPersonalProducts = async (req: Request, res: Response) => {
-    const user: any = req.user;
-    const products: Array<Product> = await ProductModel.find({
-      "seller._id": user._id,
-    }).select({
-      "seller.password": 0,
-      "seller.email": 0,
-      "seller.userSettings": 0,
-    });
+    const products: Product[] = await this.productRepo.getProductsOfSellerById(
+      (<User>req.user)._id
+    );
 
     this.imageHelper.prependProductImagePaths(products);
 
@@ -59,7 +56,6 @@ export class ProductController {
       weightUnit: req.body.weightUnit,
       seller: req.user,
     });
-    console.log(product);
     const { error } = this.validator.validateNewProduct(product);
 
     if (error) {
@@ -69,10 +65,9 @@ export class ProductController {
 
     try {
       this.imageHelper.saveProductImage(product);
-      const { _id } = await product.save();
-      return res.status(201).json({ id: _id });
+      await this.productRepo.save(product);
+      return res.status(201).json({ id: product._id });
     } catch (err) {
-      console.log(err);
       this.imageHelper.deleteProductImage(product);
       return res.status(400).json({ message: err.message });
     }

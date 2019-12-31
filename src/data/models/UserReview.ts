@@ -9,6 +9,7 @@ export class UserReview extends Typegoose {
   rating: number;
   @prop({ required: true, ref: "User" })
   reviewer: Ref<User>;
+  reviewedId: string;
 }
 
 export const UserReviewModel = new UserReview().getModelForClass(UserReview);
