@@ -37,10 +37,9 @@ export class UserController {
    * Get user details from jwttoken
    */
   getUserDetails = async (req: Request, res: Response, next: NextFunction) => {
-    const userWithDetails = await UserModel.findById((<User>req.user)._id)
-      .populate("address")
-      .populate("userSettings");
-    userWithDetails.password = undefined;
+    const userWithDetails = await this.userRepo.getUserWithAddressAndSettings(
+      (<any>req.user)._id
+    );
     this.imageHelper.prependUserImagePaths(userWithDetails);
     return res.status(200).json(userWithDetails);
   };
@@ -64,18 +63,6 @@ export class UserController {
     try {
       this.userRepo.saveReview(review);
       return res.status(201).json({ _id: review._id });
-    } catch (err) {
-      return res.status(400).json(err);
-    }
-  };
-
-  // TODO: remove this endpoint
-  getUserReviews = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const reviews = await UserReviewModel.find()
-        .populate("reviewer")
-        .exec();
-      return res.status(201).json(reviews);
     } catch (err) {
       return res.status(400).json(err);
     }
@@ -130,7 +117,7 @@ export class UserController {
     const user = new UserModel(req.body);
 
     try {
-      const userFromDb = await UserModel.findOne({ email: req.body.email });
+      const userFromDb = await this.userRepo.findByEmail(req.body.email);
       if (userFromDb) {
         return res.status(400).json({ message: "Email is already in use" });
       }
@@ -163,11 +150,11 @@ export class UserController {
     const userSettings = new UserSettingsModel(req.body);
 
     try {
-      UserSettingsModel.findByIdAndUpdate(userSettings._id, userSettings);
+      await this.userRepo.updateSettings(userSettings);
+      return res.status(200).end();
     } catch (error) {
       return res.status(400).json(error);
     }
-    return res.status(200).end();
   };
 
   /**
@@ -187,14 +174,10 @@ export class UserController {
         req.body.addressLine
       );
       addressEntry.position = [addressEntry.longitude, addressEntry.latitude];
-      (addressEntry.user = (<User>req.user)._id),
-        await AddressModel.findByIdAndUpdate(
-          (<User>req.user).address,
-          addressEntry as Address,
-          {
-            upsert: true,
-          }
-        );
+      addressEntry.user = (<User>req.user)._id;
+      addressEntry._id = (<User>req.user).address;
+      const address = new AddressModel(addressEntry);
+      await this.userRepo.updateOrInsertAddress(address);
       return res.status(201).end();
     } catch (error) {
       return res.status(400).send(error);
@@ -205,7 +188,11 @@ export class UserController {
    * POST /api/account/profile
    * Update profile information.
    */
-  postUpdateProfile = (req: Request, res: Response, next: NextFunction) => {
+  postUpdateProfile = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     const { error } = this.userValidator.validatePostUpdateProfile(req.body);
 
     if (error) {
@@ -214,31 +201,30 @@ export class UserController {
       });
     }
 
-    UserModel.findById(req.body.id, (err: any, user: User) => {
-      if (err) {
-        return next(err);
-      }
+    try {
+      const user = await UserModel.findById(req.body.id);
       user.email = req.body.email || "";
-      UserModel.create((err: WriteError) => {
-        if (err) {
-          if (err.code === 11000) {
-            return res.status(400).json({
-              message:
-                "The email address you have entered is already associated with an account.",
-            });
-          }
-          return next(err);
-        }
-        return res.status(201).end();
-      });
-    });
+      await UserModel.findOneAndUpdate(user._id, user);
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(400).json({
+          message:
+            "The email address you have entered is already associated with an account.",
+        });
+      }
+      return next(err);
+    }
   };
 
   /**
    * POST /api/account/password
    * Update current password.
    */
-  postUpdatePassword = (req: Request, res: Response, next: NextFunction) => {
+  postUpdatePassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
     const { error } = this.userValidator.validatePostUpdatePassword(req.body);
 
     if (error) {
@@ -247,81 +233,78 @@ export class UserController {
       });
     }
 
-    UserModel.findById(req.body.id, (err: any, user: User) => {
-      if (err) {
-        return next(err);
-      }
+    try {
+      const user = await UserModel.findById(req.body.id);
       user.password = req.body.password;
-      UserModel.create((err: WriteError) => {
-        if (err) {
-          return next(err);
-        }
-        return res.status(201).end();
-      });
-    });
+      UserModel.findOneAndUpdate(user.id, user);
+      return res.status(201).end();
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
    * POST /api/account/delete
    * Delete user account.
    */
-  postDeleteAccount = (req: Request, res: Response, next: NextFunction) => {
-    UserModel.remove({ _id: req.body.id }, (err: any) => {
-      if (err) {
-        return next(err);
-      }
+  postDeleteAccount = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      await UserModel.remove({ _id: req.body.id });
       req.logout();
       return res.status(200).end();
-    });
+    } catch (err) {
+      return next(err);
+    }
   };
 
   /**
    * GET /api/account/unlink/:provider
    * Unlink OAuth provider.
    */
-  getOauthUnlink = (req: Request, res: Response, next: NextFunction) => {
+  getOauthUnlink = async (req: Request, res: Response, next: NextFunction) => {
     const provider = req.params.provider;
-    UserModel.findById(req.body.id, (err: any, user: any) => {
-      if (err) {
-        return next(err);
-      }
+
+    try {
+      const user: any = await UserModel.findById(req.body.id);
       user[provider] = undefined;
       user.tokens = user.tokens.filter(
         (token: AuthToken) => token.kind !== provider
       );
-      user.save((err: WriteError) => {
-        if (err) {
-          return next(err);
-        }
-        return res.status(200).end();
-      });
-    });
+      this.userRepo.save(user);
+      return res.status(200).end();
+    } catch (error) {
+      return next(error);
+    }
   };
 
   /**
    * GET /api/reset/:token
    * Reset Password page.
    */
-  getReset = (req: Request, res: Response, next: NextFunction) => {
+  getReset = async (req: Request, res: Response, next: NextFunction) => {
     if (req.isAuthenticated()) {
       return res.status(400).json({
         message: "Already signed in",
       });
     }
-    UserModel.findOne({ passwordResetToken: req.params.token })
-      .where("passwordResetExpires")
-      .gt(Date.now())
-      .exec((err: any, user: User) => {
-        if (err) {
-          return next(err);
-        }
-        if (!user) {
-          return res.status(403).json({
-            message: "Password reset token is invalid or has expired.",
-          });
-        }
-        return res.status(200).end();
-      });
+
+    try {
+      const user = await this.userRepo.getWithExpiringPasswordToken(
+        req.params.token
+      );
+      if (!user) {
+        return res.status(403).json({
+          message: "Password reset token is invalid or has expired.",
+        });
+      }
+      return res.status(200).end();
+    } catch (error) {
+      return next(error);
+    }
   };
 
   /**

@@ -42,7 +42,6 @@ export default class ProjectRouter {
       .post("/reset/:token", this._userController.postReset)
       .post("/signup", this._userController.postSignup)
       .post("/contact", this._contactController.postContact)
-      .get("/review", this._userController.getUserReviews)
       .post("/user/:id/review", this.jwtAuth, this._userController.postReview)
       .put("/user/settings", this.jwtAuth, this._userController.putUserSettings)
       .post("/user/address", this.jwtAuth, this._userController.postUserAddress)
