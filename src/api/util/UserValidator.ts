@@ -2,6 +2,9 @@ import Joi, { SchemaMap, object } from "@hapi/joi";
 import { StringSchema, ObjectSchema } from "@hapi/joi";
 import { Service } from "typedi";
 import { ValidationRuleBuilder } from "./Validator";
+import { UserSettingsValidator } from "./UserSettingsValidator";
+import { UserAddressValidator } from "./AddressValidator";
+import { ReviewValidator } from "./ReviewValidator";
 
 class UserValidationRuleBuilder extends ValidationRuleBuilder {
   withEmail(): UserValidationRuleBuilder {
@@ -41,6 +44,12 @@ class UserValidationRuleBuilder extends ValidationRuleBuilder {
 
 @Service()
 export class UserValidator {
+  constructor(
+    private userSettingsValidator: UserSettingsValidator,
+    private addressValidator: UserAddressValidator,
+    private reviewValidator: ReviewValidator
+  ) {}
+
   public validatePostContact(fields: Object) {
     const validationRules = new UserValidationRuleBuilder()
       .withName()
@@ -93,5 +102,17 @@ export class UserValidator {
   public validatePostResetToken(fields: Object) {
     const validationRules = this.confirmPasswordValidationRules();
     return Joi.validate(fields, validationRules);
+  }
+
+  public validateNewReview(fields: Object) {
+    return this.reviewValidator.validateNewReview(fields);
+  }
+
+  public validateNewUserAddress(fields: Object) {
+    return this.addressValidator.validateNewUserAddress(fields);
+  }
+
+  public validateUserSettings(fields: Object) {
+    return this.userSettingsValidator.validateUserSettings(fields);
   }
 }

@@ -19,14 +19,13 @@ export class ProductController {
    */
   getProductsInDistanceRange = async (req: Request, res: Response) => {
     const userLocation = req.body.position;
-    // this.imageHelper.prependProductImagePaths(products);
 
     const products: Product[] = await this.productRepo.getProductsInRange(
       userLocation,
       5
     );
+    this.imageHelper.prependProductImagePaths(products);
     res.json(products);
-    // res.json(products);
   };
 
   /**
@@ -46,20 +45,12 @@ export class ProductController {
    * POST /api/product
    */
   post = async (req: any, res: Response) => {
-    const product = new ProductModel({
-      name: req.body.name,
-      description: req.body.description,
-      amount: req.body.amount,
-      imageUrl: req.files.image?.path,
-      priceInEuro: req.body.priceInEuro,
-      type: req.body.type,
-      weightUnit: req.body.weightUnit,
-      seller: req.user,
-    });
-    const { error } = this.validator.validateNewProduct(product);
+    const product = new ProductModel(req.body);
+    product.seller = req.user;
+    product.imageUrl = req.files.image?.path;
 
+    const { error } = this.validator.validateNewProduct(product);
     if (error) {
-      console.log(error);
       return res.status(400).json(error);
     }
 

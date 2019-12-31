@@ -25,9 +25,6 @@ export class UserController {
   constructor(
     private userValidator: UserValidator,
     private imageHelper: ImageHelper,
-    private reviewValidator: ReviewValidator,
-    private userSettingsValidator: UserSettingsValidator,
-    private userAddressValidator: UserAddressValidator,
     private geoService: GeoService,
     private userRepo: UserRepo
   ) {}
@@ -55,7 +52,7 @@ export class UserController {
       reviewer: (<User>req.user)._id,
       reviewedId: req.params.id,
     });
-    const { error } = this.reviewValidator.validateNewReview(review);
+    const { error } = this.userValidator.validateNewReview(review);
     if (error) {
       return res.status(400).json(error);
     }
@@ -143,7 +140,7 @@ export class UserController {
    * Update profile information.
    */
   putUserSettings = async (req: Request, res: Response, next: NextFunction) => {
-    const { error } = this.userSettingsValidator.validateUserSettings(req.body);
+    const { error } = this.userValidator.validateUserSettings(req.body);
     if (error) {
       return res.status(400).json(error);
     }
@@ -162,9 +159,7 @@ export class UserController {
    * Change User Address.
    */
   postUserAddress = async (req: Request, res: Response, next: NextFunction) => {
-    const { error } = this.userAddressValidator.validateNewUserAddress(
-      req.body
-    );
+    const { error } = this.userValidator.validateNewUserAddress(req.body);
     if (error) {
       return res.status(400).json(error);
     }
