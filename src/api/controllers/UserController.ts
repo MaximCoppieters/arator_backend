@@ -120,7 +120,7 @@ export class UserController {
    * POST /api/signup
    * Create a new local account.
    */
-  postSignup = (req: Request, res: Response, next: NextFunction) => {
+  postSignup = async (req: Request, res: Response, next: NextFunction) => {
     const { error } = this.userValidator.validatePostSignup(req.body);
 
     if (error) {
@@ -129,25 +129,16 @@ export class UserController {
 
     const user = new UserModel(req.body);
 
-    UserModel.findOne({ email: req.body.email }, (err, existingUser) => {
-      if (err) {
-        return next(err);
-      }
-      if (existingUser) {
+    try {
+      const userFromDb = await UserModel.findOne({ email: req.body.email });
+      if (userFromDb) {
         return res.status(400).json({ message: "Email is already in use" });
       }
-      user.save((err: any) => {
-        if (err) {
-          return next(err);
-        }
-        req.logIn(user, err => {
-          if (err) {
-            return next(err);
-          }
-          return res.status(201).end();
-        });
-      });
-    });
+      await this.userRepo.save(user);
+      return res.status(201).end();
+    } catch (error) {
+      return next(error);
+    }
   };
 
   // TODO: Remove endpoint

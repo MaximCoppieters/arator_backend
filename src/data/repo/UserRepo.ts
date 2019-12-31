@@ -1,6 +1,6 @@
 import { Service } from "typedi";
 import { UserReview, UserReviewModel } from "../models/UserReview";
-import { UserModel } from "../models/User";
+import { UserModel, User } from "../models/User";
 
 @Service()
 export class UserRepo {
@@ -11,5 +11,7 @@ export class UserRepo {
     await reviewed.save();
   }
 
-  getReviews;
+  async save(user: User): Promise<void> {
+    await UserReviewModel.create(user);
+  }
 }
