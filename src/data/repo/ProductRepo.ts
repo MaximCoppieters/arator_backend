@@ -21,6 +21,7 @@ export class ProductRepo {
     const products: Product[] = [];
     for (let i = 0; i < sellerAddresses.length; i++) {
       const seller = <any>sellerAddresses[i].user;
+
       const sellerProducts = await ProductModel.find({
         _id: { $in: seller.products },
       });

@@ -1,7 +1,7 @@
 import { User } from "./User";
-import { Typegoose, prop } from "@hasezoey/typegoose";
+import { getModelForClass, Typegoose, prop } from "@typegoose/typegoose";
 
-export class UserSettings extends Typegoose {
+export class UserSettings {
   _id?: string;
   @prop({ required: true, default: 5 })
   maxProductDistance: number;
@@ -9,6 +9,4 @@ export class UserSettings extends Typegoose {
   useGpsLocation: boolean;
 }
 
-export const UserSettingsModel = new UserSettings().getModelForClass(
-  UserSettings
-);
+export const UserSettingsModel = getModelForClass(UserSettings);

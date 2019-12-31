@@ -1,8 +1,15 @@
-import { Typegoose, prop, index, arrayProp, Ref } from "@hasezoey/typegoose";
+import {
+  Typegoose,
+  prop,
+  index,
+  arrayProp,
+  Ref,
+  getModelForClass,
+} from "@typegoose/typegoose";
 import { User } from "./User";
 
 @index({ position: "2dsphere" })
-export class Address extends Typegoose {
+export class Address {
   _id?: string;
   addressLine: string;
 
@@ -29,4 +36,4 @@ export class Address extends Typegoose {
   user: Ref<User>;
 }
 
-export const AddressModel = new Address().getModelForClass(Address);
+export const AddressModel = getModelForClass(Address);

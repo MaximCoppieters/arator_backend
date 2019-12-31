@@ -6,10 +6,8 @@ import {
   pre,
   Ref,
   arrayProp,
-  instanceMethod,
-  staticMethod,
-  ModelType,
-} from "@hasezoey/typegoose";
+  getModelForClass,
+} from "@typegoose/typegoose";
 import { UserSettings, UserSettingsModel } from "./UserSettings";
 import { ImageHelper } from "../../api/util/ImageHelper";
 import { UserReview } from "./UserReview";
@@ -42,7 +40,7 @@ export type AuthToken = {
     });
   });
 })
-export class User extends Typegoose {
+export class User {
   _id?: string;
   @prop()
   email: string;
@@ -95,7 +93,6 @@ export class User extends Typegoose {
   @prop()
   tokens: string[];
 
-  @instanceMethod
   addReview(review: UserReview) {
     this.reviews.push(review);
     this.averageRating =
@@ -105,4 +102,4 @@ export class User extends Typegoose {
   }
 }
 
-export const UserModel = new User().getModelForClass(User);
+export const UserModel = getModelForClass(User);

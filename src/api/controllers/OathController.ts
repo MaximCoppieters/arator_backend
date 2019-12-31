@@ -16,9 +16,7 @@ export class OathController {
     );
     graph.setAccessToken(token.accessToken);
     graph.get(
-      `${
-        req.body.facebook
-      }?fields=id,name,email,first_name,last_name,link,locale,timezone`,
+      `${req.body.facebook}?fields=id,name,email,first_name,last_name,link,locale,timezone`,
       (err: Error, results: graph.FacebookUser) => {
         if (err) {
           return next(err);

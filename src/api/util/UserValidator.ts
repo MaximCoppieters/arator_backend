@@ -37,7 +37,7 @@ class UserValidationRuleBuilder extends ValidationRuleBuilder {
     return this;
   }
   withConfirmPassword(): UserValidationRuleBuilder {
-    this._schema["confirmPassword"] = Joi.ref("password");
+    this.schema["confirmPassword"] = Joi.ref("password");
     return this;
   }
 }

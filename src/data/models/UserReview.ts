@@ -1,7 +1,7 @@
-import { Typegoose, prop, Ref } from "@hasezoey/typegoose";
+import { Typegoose, prop, Ref, getModelForClass } from "@typegoose/typegoose";
 import { User } from "./User";
 
-export class UserReview extends Typegoose {
+export class UserReview {
   _id?: string;
   @prop({ required: true })
   comment: string;
@@ -12,4 +12,4 @@ export class UserReview extends Typegoose {
   reviewedId: string;
 }
 
-export const UserReviewModel = new UserReview().getModelForClass(UserReview);
+export const UserReviewModel = getModelForClass(UserReview);

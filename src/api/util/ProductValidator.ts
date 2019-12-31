@@ -1,6 +1,7 @@
-import { ValidationRuleBuilder } from "./Validator";
+import { ValidationRuleBuilder, RequestValidator } from "./Validator";
 import { Service } from "typedi";
 import Joi from "@hapi/joi";
+import { RequestHandler } from "express";
 
 class ProductValidationRuleBuilder extends ValidationRuleBuilder {
   static readonly MIN_PRICE = 0.0;
@@ -63,8 +64,8 @@ class ProductValidationRuleBuilder extends ValidationRuleBuilder {
 }
 
 @Service()
-export class ProductValidator {
-  public validateNewProduct(fields: Object) {
+export class ProductValidator extends RequestValidator {
+  public validateNewProduct(fields: Object): RequestHandler {
     const validationRules = new ProductValidationRuleBuilder()
       .withName()
       .withImageUrl()
@@ -74,6 +75,6 @@ export class ProductValidator {
       .withDescription()
       .build();
 
-    return Joi.validate(fields, validationRules);
+    return this.validator.query(validationRules);
   }
 }

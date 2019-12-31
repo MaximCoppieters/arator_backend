@@ -1,10 +1,10 @@
 import * as mongoose from "mongoose";
-import { Typegoose, prop, instanceMethod, index } from "@hasezoey/typegoose";
+import { Typegoose, prop, index, getModelForClass } from "@typegoose/typegoose";
 import { User } from "./User";
 import { WeightUnit } from "./WeightUnit";
 
 @index({ "seller.address.position": "2dsphere" })
-export class Product extends Typegoose {
+export class Product {
   _id?: string;
   @prop({ required: true })
   name: string;
@@ -27,4 +27,4 @@ export class Product extends Typegoose {
   seller: User;
 }
 
-export const ProductModel = new Product().getModelForClass(Product);
+export const ProductModel = getModelForClass(Product);

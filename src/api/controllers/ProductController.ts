@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { Service } from "typedi";
 import { ProductModel, Product } from "../../data/models/Product";
 import { ProductValidator } from "../util/ProductValidator";
 import { ImageHelper } from "../util/ImageHelper";
 import { UserModel, User } from "../../data/models/User";
 import { AddressModel, Address } from "../../data/models/Address";
 import { ProductRepo } from "../../data/repo/ProductRepo";
+import { Service } from "typedi";
 
 @Service()
 export class ProductController {
@@ -48,11 +48,6 @@ export class ProductController {
     const product = new ProductModel(req.body);
     product.seller = req.user;
     product.imageUrl = req.files.image?.path;
-
-    const { error } = this.validator.validateNewProduct(product);
-    if (error) {
-      return res.status(400).json(error);
-    }
 
     try {
       this.imageHelper.saveProductImage(product);

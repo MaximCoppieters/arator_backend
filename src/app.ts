@@ -9,7 +9,7 @@ import mongoose from "mongoose";
 import passport from "passport";
 import bluebird from "bluebird";
 import { MONGODB_URI } from "./api/util/secrets";
-import ProjectRouter from "./api/router";
+import ProjectRouter from "./api/router/router";
 import { Container, Service } from "typedi";
 import { getDatabaseClient } from "./data/db_client";
 import formData from "express-form-data";
