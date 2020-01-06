@@ -73,13 +73,11 @@ export class User {
   about: string;
 
   @prop({
-    required: true,
     ref: "UserSettings",
   })
   userSettings: Ref<UserSettings>;
 
   @prop({
-    required: true,
     ref: "Address",
   })
   address: Ref<Address>;

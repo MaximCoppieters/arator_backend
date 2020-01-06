@@ -12,11 +12,13 @@ export class ProductRepo {
     const sellerAddresses: Array<Address> = await AddressModel.find()
       .where("position")
       .near({
-        maxDistance: rangeInKm * 1000,
+        maxDistance: rangeInKm,
         center: { type: "Point", coordinates: userLocation },
       })
       .populate("user")
       .populate("products");
+
+    console.log(sellerAddresses);
 
     const products: Product[] = [];
     for (let i = 0; i < sellerAddresses.length; i++) {
@@ -27,8 +29,8 @@ export class ProductRepo {
       });
       sellerProducts.forEach(product => {
         product.seller = seller;
+        products.push(product);
       });
-      products.push(sellerProducts as any);
     }
     return products;
   }
@@ -46,6 +48,7 @@ export class ProductRepo {
   async save(product: Product): Promise<void> {
     await ProductModel.create(product);
     const owner = await UserModel.findById(product.seller._id);
+    console.log(owner);
     owner.products.push(product);
     await owner.save();
   }

@@ -20,9 +20,11 @@ export class ProductController {
   getProductsInDistanceRange = async (req: Request, res: Response) => {
     const userLocation = req.body.position;
 
+    const userProductDistanceSetting = (<any>req.user).userSettings
+      .maxProductDistance;
     const products: Product[] = await this.productRepo.getProductsInRange(
       userLocation,
-      5
+      userProductDistanceSetting
     );
     this.imageHelper.prependProductImagePaths(products);
     res.json(products);
@@ -46,8 +48,6 @@ export class ProductController {
    */
   post = async (req: any, res: Response) => {
     const product = new ProductModel(req.body);
-    product.seller = req.user;
-    product.imageUrl = req.files.image?.path;
 
     try {
       this.imageHelper.saveProductImage(product);

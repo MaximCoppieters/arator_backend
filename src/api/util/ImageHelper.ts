@@ -37,7 +37,7 @@ export class ImageHelper {
   deleteProductImage(product: Product) {
     const imagePath = path.join(
       AppInfo.publicUserImages,
-      product.seller._id,
+      product.seller._id.toString(),
       product.imageUrl
     );
 

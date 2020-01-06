@@ -1,7 +1,9 @@
-import { ValidationRuleBuilder, RequestValidator } from "./Validator";
+import { ValidationRuleBuilder } from "./Validator";
+import { Request, Response } from "express";
 import { Service } from "typedi";
-import Joi from "@hapi/joi";
-import { RequestHandler } from "express";
+import Joi, { ValidationResult } from "@hapi/joi";
+import { RequestHandler, NextFunction } from "express";
+import { ObjectSchema } from "@hapi/joi";
 
 class ProductValidationRuleBuilder extends ValidationRuleBuilder {
   static readonly MIN_PRICE = 0.0;
@@ -64,9 +66,22 @@ class ProductValidationRuleBuilder extends ValidationRuleBuilder {
 }
 
 @Service()
-export class ProductValidator extends RequestValidator {
-  public validateNewProduct(fields: Object): RequestHandler {
-    const validationRules = new ProductValidationRuleBuilder()
+export class ProductValidator {
+  validateNewProduct = async (req: any, res: Response, next: NextFunction) => {
+    req.body.imageUrl = req.files.image?.path;
+    req.body.seller = req.user;
+    const validationRules = this.newProductValidationRules();
+
+    const { error } = Joi.validate(req.body, validationRules);
+
+    if (error) {
+      return res.status(400).json(error);
+    }
+    return next();
+  };
+
+  private newProductValidationRules(): ObjectSchema {
+    return new ProductValidationRuleBuilder()
       .withName()
       .withImageUrl()
       .withType()
@@ -74,7 +89,5 @@ export class ProductValidator extends RequestValidator {
       .withAmount()
       .withDescription()
       .build();
-
-    return this.validator.query(validationRules);
   }
 }

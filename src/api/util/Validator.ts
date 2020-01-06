@@ -1,10 +1,6 @@
 import { SchemaMap, ObjectSchema, StringSchema, Schema } from "@hapi/joi";
 import Joi from "@hapi/joi";
-import {
-  // Creates a validator that generates middlewares
-  createValidator,
-  ExpressJoiInstance,
-} from "express-joi-validation";
+import { Service } from "typedi";
 
 export abstract class ValidationRuleBuilder {
   protected schema: SchemaMap = {};
@@ -24,8 +20,4 @@ export abstract class ValidationRuleBuilder {
   protected addRule(propertyName: string, rule: Schema): void {
     this.schema[propertyName] = rule;
   }
-}
-
-export abstract class RequestValidator {
-  protected validator: ExpressJoiInstance = createValidator();
 }

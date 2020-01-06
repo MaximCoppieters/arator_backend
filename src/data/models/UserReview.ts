@@ -3,11 +3,11 @@ import { User } from "./User";
 
 export class UserReview {
   _id?: string;
-  @prop({ required: true })
+  @prop()
   comment: string;
-  @prop({ required: true })
+  @prop()
   rating: number;
-  @prop({ required: true, ref: "User" })
+  @prop({ ref: "User" })
   reviewer: Ref<User>;
   reviewedId: string;
 }

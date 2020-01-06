@@ -13,8 +13,12 @@ export class UserRepo {
     reviewed.save();
   }
 
-  async save(user: User): Promise<void> {
-    UserReviewModel.create(user);
+  async save(user: DocumentType): Promise<void> {
+    try {
+      await UserReviewModel.create(user);
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   async findByEmail(email: string): Promise<User> {
@@ -34,9 +38,13 @@ export class UserRepo {
   }
 
   async updateOrInsertAddress(address: Address): Promise<void> {
-    AddressModel.findByIdAndUpdate(address._id, address, {
-      upsert: true,
-    });
+    try {
+      await AddressModel.findByIdAndUpdate(address._id, address, {
+        upsert: true,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async getWithExpiringPasswordToken(passwordToken: string): Promise<User> {

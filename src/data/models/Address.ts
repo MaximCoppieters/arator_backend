@@ -8,13 +8,12 @@ import {
 } from "@typegoose/typegoose";
 import { User } from "./User";
 
-@index({ position: "2dsphere" })
 export class Address {
   _id?: string;
   addressLine: string;
 
-  @arrayProp({ items: Array })
-  position?: [[Number]];
+  @prop({ required: true })
+  position?: Array<number>;
 
   latitude: number;
   longitude: number;

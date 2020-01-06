@@ -109,26 +109,27 @@ export class UserController {
     }
 
     const user = new UserModel(req.body);
+    const address = new AddressModel();
+    const settings = new UserSettingsModel();
 
     try {
       const userFromDb = await this.userRepo.findByEmail(req.body.email);
       if (userFromDb) {
         return res.status(400).json({ message: "Email is already in use" });
       }
-      await this.userRepo.save(user);
+
+      user.address = address;
+      user.userSettings = settings;
+      await user.save();
       return res.status(201).end();
     } catch (error) {
-      return next(error);
+      return res.status(400).json(error);
     }
   };
 
   // TODO: Remove endpoint
   getAll = async (req: Request, res: Response, next: NextFunction) => {
-    const users = await UserModel.find()
-      .populate("reviews")
-      .populate("userSettings")
-      .populate("address")
-      .exec();
+    const users = await UserModel.find();
     return res.json(users);
   };
 
@@ -165,10 +166,11 @@ export class UserController {
       const addressEntry: any = await this.geoService.geocode(
         req.body.addressLine
       );
-      addressEntry.position = [addressEntry.longitude, addressEntry.latitude];
       addressEntry.user = (<User>req.user)._id;
       addressEntry._id = (<User>req.user).address;
       const address = new AddressModel(addressEntry);
+      address.position = [addressEntry.longitude, addressEntry.latitude];
+      console.log(address.position);
       await this.userRepo.updateOrInsertAddress(address);
       return res.status(201).end();
     } catch (error) {
