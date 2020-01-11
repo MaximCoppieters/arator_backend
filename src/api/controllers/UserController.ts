@@ -80,7 +80,15 @@ export class UserController {
           return next(err);
         }
         if (!user) {
-          return res.status(400).json({ message: info.message });
+          return res.status(400).json({
+            details: [
+              {
+                path: "password",
+                message: "Invalid email or password",
+                context: { label: "password" },
+              },
+            ],
+          });
         }
         req.logIn(user, { session: false }, err => {
           if (err) {
@@ -170,7 +178,6 @@ export class UserController {
       addressEntry._id = (<User>req.user).address;
       const address = new AddressModel(addressEntry);
       address.position = [addressEntry.longitude, addressEntry.latitude];
-      console.log(address.position);
       await this.userRepo.updateOrInsertAddress(address);
       return res.status(201).end();
     } catch (error) {

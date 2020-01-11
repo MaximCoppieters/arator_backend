@@ -1,19 +1,13 @@
-import {
-  Typegoose,
-  prop,
-  index,
-  arrayProp,
-  Ref,
-  getModelForClass,
-} from "@typegoose/typegoose";
+import { prop, Ref, getModelForClass, index } from "@typegoose/typegoose";
 import { User } from "./User";
 
+@index({ position: "2dsphere" })
 export class Address {
   _id?: string;
   addressLine: string;
 
   @prop({ required: true })
-  position?: Array<number>;
+  position?: [Number, Number];
 
   latitude: number;
   longitude: number;

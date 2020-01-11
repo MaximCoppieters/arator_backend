@@ -15,9 +15,10 @@ export class ProductController {
     private productRepo: ProductRepo
   ) {}
   /**
-   * GET /api/product
+   * GET /api/product?latitude=120&longitude=40
    */
   getProductsInDistanceRange = async (req: Request, res: Response) => {
+    console.log(req.body);
     const userLocation = req.body.position;
 
     const userProductDistanceSetting = (<any>req.user).userSettings

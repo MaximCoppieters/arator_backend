@@ -1,7 +1,7 @@
 import { Product, ProductModel } from "../models/Product";
 import { AddressModel, Address } from "../models/Address";
 import { Service } from "typedi";
-import { UserModel } from "../models/User";
+import { UserModel, User } from "../models/User";
 
 @Service()
 export class ProductRepo {
@@ -12,23 +12,24 @@ export class ProductRepo {
     const sellerAddresses: Array<Address> = await AddressModel.find()
       .where("position")
       .near({
-        maxDistance: rangeInKm,
+        maxDistance: rangeInKm * 10000,
         center: { type: "Point", coordinates: userLocation },
       })
       .populate("user")
-      .populate("products");
-
+      .populate("product");
     console.log(sellerAddresses);
 
     const products: Product[] = [];
     for (let i = 0; i < sellerAddresses.length; i++) {
       const seller = <any>sellerAddresses[i].user;
+      this.removePrivateDetails(seller);
 
       const sellerProducts = await ProductModel.find({
         _id: { $in: seller.products },
       });
       sellerProducts.forEach(product => {
         product.seller = seller;
+        product.seller.products = undefined;
         products.push(product);
       });
     }
@@ -36,13 +37,17 @@ export class ProductRepo {
   }
 
   async getProductsOfSellerById(id: string): Promise<Product[]> {
-    return await ProductModel.find({
+    const products = await ProductModel.find({
       "seller._id": id,
-    }).select({
-      "seller.password": 0,
-      "seller.email": 0,
-      "seller.userSettings": 0,
     });
+    products.forEach(product => this.removePrivateDetails(product.seller));
+    return products;
+  }
+
+  private removePrivateDetails(user: User) {
+    user.password = undefined;
+    user.email = undefined;
+    user.userSettings = undefined;
   }
 
   async save(product: Product): Promise<void> {

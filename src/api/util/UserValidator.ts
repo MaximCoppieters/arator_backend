@@ -1,4 +1,4 @@
-import Joi, { SchemaMap, object } from "@hapi/joi";
+import Joi, { SchemaMap, object, Schema } from "@hapi/joi";
 import { StringSchema, ObjectSchema } from "@hapi/joi";
 import { Service } from "typedi";
 import { ValidationRuleBuilder } from "./Validator";
@@ -27,13 +27,17 @@ class UserValidationRuleBuilder extends ValidationRuleBuilder {
     );
     return this;
   }
-  withPassword(): UserValidationRuleBuilder {
+  withPasswordSignup(): UserValidationRuleBuilder {
     this.addRule(
       "password",
       this.requiredString()
         .min(6)
         .error(() => "Password is too short (min 6)")
     );
+    return this;
+  }
+  withPasswordLogin(): UserValidationRuleBuilder {
+    this.addRule("password", this.requiredString());
     return this;
   }
   withConfirmPassword(): UserValidationRuleBuilder {
@@ -64,7 +68,7 @@ export class UserValidator {
     return new UserValidationRuleBuilder()
       .withName()
       .withEmail()
-      .withPassword()
+      .withPasswordSignup()
       .withConfirmPassword()
       .build();
   }
@@ -72,7 +76,7 @@ export class UserValidator {
   public validatePostLogin(fields: Object) {
     const validationRules = new UserValidationRuleBuilder()
       .withEmail()
-      .withPassword()
+      .withPasswordLogin()
       .build();
 
     return Joi.validate(fields, validationRules);
