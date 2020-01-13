@@ -3,7 +3,6 @@ import { ProductModel, Product } from "../../data/models/Product";
 import { ProductValidator } from "../util/ProductValidator";
 import { ImageHelper } from "../util/ImageHelper";
 import { UserModel, User } from "../../data/models/User";
-import { AddressModel, Address } from "../../data/models/Address";
 import { ProductRepo } from "../../data/repo/ProductRepo";
 import { Service } from "typedi";
 
@@ -15,7 +14,7 @@ export class ProductController {
     private productRepo: ProductRepo
   ) {}
   /**
-   * GET /api/product?latitude=120&longitude=40
+   * GET /api/product
    */
   getProductsInDistanceRange = async (req: Request, res: Response) => {
     console.log(req.body);

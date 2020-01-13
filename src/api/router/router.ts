@@ -13,6 +13,7 @@ import { Router } from "express";
 import { OathRoutes } from "./oath_router";
 import { ProductRouter } from "./product_router";
 import { ContactRouter } from "./contact_router";
+import { ShoppingCartRouter } from "./shopping_cart_router";
 
 export interface RouterBase {
   addRoutes(projectRouter: Router): void;
@@ -31,7 +32,8 @@ export default class ProjectRouter {
     private userRouter: UserRouter,
     private productRouter: ProductRouter,
     private oathRouter: OathRoutes,
-    private contactRouter: ContactRouter
+    private contactRouter: ContactRouter,
+    private shoppingCartRouter: ShoppingCartRouter
   ) {
     this.setupEndpoints();
   }
@@ -40,6 +42,7 @@ export default class ProjectRouter {
     this.productRouter.addRoutes(this.expressRouter);
     this.oathRouter.addRoutes(this.expressRouter);
     this.contactRouter.addRoutes(this._expressRouter);
+    this.shoppingCartRouter.addRoutes(this._expressRouter);
   }
 
   get expressRouter() {

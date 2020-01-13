@@ -17,7 +17,6 @@ export class ProductRepo {
       })
       .populate("user")
       .populate("product");
-    console.log(sellerAddresses);
 
     const products: Product[] = [];
     for (let i = 0; i < sellerAddresses.length; i++) {

@@ -13,6 +13,7 @@ import { ImageHelper } from "../../api/util/ImageHelper";
 import { UserReview } from "./UserReview";
 import { Address, AddressModel } from "./Address";
 import { Product } from "./Product";
+import { ShoppingCart } from "./ShoppingCart";
 
 export type AuthToken = {
   accessToken: string;
@@ -76,6 +77,11 @@ export class User {
     ref: "UserSettings",
   })
   userSettings: Ref<UserSettings>;
+
+  @prop({
+    ref: "ShoppingCart",
+  })
+  shoppingCart: Ref<ShoppingCart>;
 
   @prop({
     ref: "Address",

@@ -5,7 +5,7 @@ import passport from "passport";
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { IVerifyOptions } from "passport-local";
-import { WriteError, ObjectId } from "mongodb";
+import { WriteError } from "mongodb";
 import "../config/passport";
 import { UserValidator } from "../util/UserValidator";
 import { Service } from "typedi";
@@ -16,6 +16,10 @@ import { UserSettingsModel } from "../../data/models/UserSettings";
 import { AddressModel, Address } from "../../data/models/Address";
 import { GeoService } from "../../business/services/GeoService";
 import { UserRepo } from "../../data/repo/UserRepo";
+import {
+  ShoppingCart,
+  ShoppingCartModel,
+} from "../../data/models/ShoppingCart";
 
 @Service()
 export class UserController {
@@ -117,8 +121,6 @@ export class UserController {
     }
 
     const user = new UserModel(req.body);
-    const address = new AddressModel();
-    const settings = new UserSettingsModel();
 
     try {
       const userFromDb = await this.userRepo.findByEmail(req.body.email);
@@ -126,8 +128,9 @@ export class UserController {
         return res.status(400).json({ message: "Email is already in use" });
       }
 
-      user.address = address;
-      user.userSettings = settings;
+      user.address = new AddressModel();
+      user.userSettings = new UserSettingsModel();
+      user.shoppingCart = new ShoppingCartModel();
       await user.save();
       return res.status(201).end();
     } catch (error) {
