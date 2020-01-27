@@ -5,8 +5,8 @@ import { Service } from "typedi";
 class ShoppingCartValidationRuleBuilder extends ValidationRuleBuilder {
   withProductDistance(): ShoppingCartValidationRuleBuilder {
     this.addRule(
-      "amountByProductId",
-      Joi.object()
+      "productsInCart",
+      Joi.array()
         .required()
         .error(() => "Cart products missing")
     );

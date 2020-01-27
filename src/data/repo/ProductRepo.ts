@@ -10,11 +10,6 @@ export class ProductRepo {
     rangeInKm: number
   ): Promise<Product[]> {
     const sellerAddresses: Array<Address> = await AddressModel.find()
-      .where("position")
-      .near({
-        maxDistance: rangeInKm * 10000,
-        center: { type: "Point", coordinates: userLocation },
-      })
       .populate("user")
       .populate("product");
 

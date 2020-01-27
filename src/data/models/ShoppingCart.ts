@@ -1,11 +1,14 @@
 import { prop, Ref, getModelForClass, arrayProp } from "@typegoose/typegoose";
 import { User } from "./User";
+import { ProductInCart } from "./ProductInCart";
 
 export class ShoppingCart {
   _id?: string;
 
-  @prop({ required: true, default: {} })
-  amountByProductId: Map<string, number>;
+  @arrayProp({
+    itemsRef: "ProductInCart",
+  })
+  productsInCart: ProductInCart[];
 
   @prop({ ref: "User" })
   user: Ref<User>;
