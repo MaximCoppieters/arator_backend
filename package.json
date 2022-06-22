@@ -30,7 +30,7 @@
     "@typegoose/typegoose": "^6.2.0",
     "@types/mongoose": "^5.5.36",
     "@types/node-geocoder": "^3.24.1",
-    "async": "^3.1.0",
+    "async": "^3.2.2",
     "bcrypt-nodejs": "^0.0.3",
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
