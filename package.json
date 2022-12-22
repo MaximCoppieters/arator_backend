@@ -44,7 +44,7 @@
     "express-joi-validator": "^2.0.1",
     "express-json-views": "^0.1.1",
     "fbgraph": "^1.4.4",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.15",
     "lusca": "^1.6.1",
     "mongoose": "^5.8.3",
